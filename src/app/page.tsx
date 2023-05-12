@@ -1,95 +1,61 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+import Image from "next/image";
+import styles from "./page.module.css";
+import { NewsWidget } from "./components/NewsWidget";
 
-export default function Home() {
+const config = {
+  news: [
+    {
+      name: "金色财经·7*24快讯",
+      api: "https://api.jinse.cn/noah/v2/lives?limit=20&reading=false&source=web&flag=down&id=0&category=0",
+
+      map_data: "list.0.lives", // 先定位新闻列表
+      map_title: "content_prefix", // 基于新闻列表的定位，下同
+      map_time: "created_at",
+      url_template: "https://www.jinse.com/lives/{id}.html", // 用于构建新闻链接, 括号内是动态属性属性
+    },
+    {
+      name: "金色财经·大事件",
+      api: "https://api.jinse.com/noah/v1/modules?page=1&limit=20&module_type=2",
+
+      map_data: "data.list", // 先定位新闻列表
+      map_title: "title", // 基于新闻列表的定位，下同
+      map_time: "published_at",
+
+      url_template: "https://www.jinse.cn/lives/{object_id}.html", // 用于构建新闻链接, 括号内是动态属性属性
+    },
+  ],
+};
+
+async function getNews(cfg: any) {
+  try {
+    const res = await fetch(cfg.api);
+
+    return res.json();
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export default async function Home() {
+  const responses = await Promise.allSettled(
+    config.news.map((cfg) => getNews(cfg))
+  );
+
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+      <div className={styles.wrapWidget}>
+        {config.news.map((item, index) => (
+          <NewsWidget
+            key={item.api}
+            data={
+              responses[index].status === "fulfilled"
+                ? (responses[index] as any).value
+                : []
+            }
+            config={config.news[index]}
+          ></NewsWidget>
+        ))}
       </div>
     </main>
-  )
+  );
 }
