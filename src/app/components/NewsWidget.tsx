@@ -20,21 +20,28 @@ function formatTime(val?: number | string) {
 }
 
 function getPropertyByString(obj: any, propString: string): any {
-  // 将 propString 按 "." 分隔，获取 key 及其父级对象数组
-  const propArray = propString.split(".");
+  try {
+    // 将 propString 按 "." 分隔，获取 key 及其父级对象数组
+    const propArray = propString.split(".");
 
-  // 如果 propString 只包含一个 key，则直接返回 getProperty(obj, key)
-  if (propArray.length === 1) {
-    return obj[propArray[0]];
-  }
+    // 如果 propString 只包含一个 key，则直接返回 getProperty(obj, key)
+    if (propArray.length === 1) {
+      return obj[propArray[0]];
+    }
 
-  // 否则，递归获取子对象的属性值
-  const currentProp = propArray.shift()!;
-  const childObj = obj[currentProp];
-  if (!childObj) {
+    // 否则，递归获取子对象的属性值
+    const currentProp = propArray.shift()!;
+    const childObj = obj[currentProp];
+    if (!childObj) {
+      return undefined;
+    }
+
+    return getPropertyByString(childObj, propArray.join("."));
+  } catch (error) {
+    console.error(error);
+    console.log("getPropertyByString", { obj, propString });
     return undefined;
   }
-  return getPropertyByString(childObj, propArray.join("."));
 }
 
 function getUrl(url_template: string, obj: any) {

@@ -28,7 +28,11 @@ const config = {
 
 async function getNews(cfg: any) {
   try {
-    const res = await fetch(cfg.api);
+    const res = await fetch(cfg.api, {
+      next: {
+        revalidate: 60,
+      },
+    });
 
     return res.json();
   } catch (error) {
